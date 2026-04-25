@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Car Damage Classifier – Web Demo</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel-2: rgba(255, 255, 255, 0.1);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.68);
+        --brand: #7c3aed;
+        --good: #22c55e;
+        --warn: #f59e0b;
+        --bad: #ef4444;
+        --border: rgba(255, 255, 255, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+
+      body {
+        margin: 0;
+        padding: 32px 16px;
+        color: var(--text);
+        background: radial-gradient(
+            1200px 600px at 20% -10%,
+            rgba(124, 58, 237, 0.35),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 500px at 90% 0%,
+            rgba(34, 197, 94, 0.18),
+            transparent 55%
+          ),
+          var(--bg);
+      }
+
+      a {
+        color: rgba(255, 255, 255, 0.92);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+      }
+      a:hover {
+        border-bottom-color: rgba(255, 255, 255, 0.55);
+      }
+
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      .header {
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 18px;
+      }
+
+      .title h1 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: -0.02em;
+      }
+      .title p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      @media (max-width: 840px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .header {
+          flex-direction: column;
+        }
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(255, 255, 255, 0.04)
+        );
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+
+      .card .body {
+        padding: 16px;
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px dashed var(--border);
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 12px;
+        color: var(--muted);
+      }
+
+      button {
+        appearance: none;
+        border: 1px solid rgba(124, 58, 237, 0.55);
+        background: linear-gradient(180deg, rgba(124, 58, 237, 0.95), rgba(124, 58, 237, 0.78));
+        color: white;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.06s ease, filter 0.2s ease;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        filter: grayscale(0.35) brightness(0.8);
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+
+      .preview {
+        width: 100%;
+        aspect-ratio: 16/10;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.35);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .result {
+        display: grid;
+        gap: 12px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        width: fit-content;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 8px 12px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 14px;
+      }
+      .k {
+        color: var(--muted);
+      }
+      .v {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+      }
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: left;
+        font-size: 14px;
+      }
+      th {
+        color: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.06);
+        font-weight: 700;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .status {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 10px;
+        min-height: 18px;
+      }
+
+      .foot {
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      code {
+        padding: 2px 6px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.22);
+        color: rgba(255, 255, 255, 0.86);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="title">
+          <h1>Car Damage Classifier – Web Demo</h1>
+          <p>
+            Upload a car image and get the <strong>top 5 predictions</strong> and confidence scores.
+            This demo calls the HuggingFace Space API endpoint directly.
+          </p>
+        </div>
+        <div class="pill">
+          Endpoint:
+          <span><code id="endpointText"></code></span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="body">
+            <div class="row" style="margin-bottom: 10px">
+              <input id="file" type="file" accept="image/*" />
+              <button id="predictBtn" disabled>Predict</button>
+            </div>
+
+            <div class="preview" id="preview">
+              <div class="hint" id="previewHint">
+                Choose a clear image with good lighting and minimal glare. Closer crops usually improve accuracy.
+              </div>
+              <img id="img" alt="" style="display: none" />
+            </div>
+
+            <div class="status" id="status"></div>
+            <div class="foot">
+              Tip: if your Space uses a different endpoint, update the constant in this file.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="body">
+            <div class="result">
+              <div class="badge" id="badge">Ready</div>
+
+              <div class="kv">
+                <div class="k">Top prediction</div>
+                <div class="v" id="topLabel">—</div>
+                <div class="k">Confidence</div>
+                <div class="v" id="topConf">—</div>
+              </div>
+
+              <div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width: 60px">Rank</th>
+                      <th>Class</th>
+                      <th style="width: 140px">Confidence</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rows">
+                    <tr>
+                      <td colspan="3" style="color: rgba(255, 255, 255, 0.62)">
+                        Upload an image to see predictions.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="hint">
+                Note: This page connects to the HuggingFace Space using <code>@gradio/client</code> and calls <code>/predict</code>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { Client } from "https://esm.sh/@gradio/client";
+
+      const SPACE = "wrezachow/car-damage-classifier";
+      document.getElementById("endpointText").textContent = SPACE;
+
+      const fileEl = document.getElementById("file");
+      const imgEl = document.getElementById("img");
+      const previewHintEl = document.getElementById("previewHint");
+      const btnEl = document.getElementById("predictBtn");
+      const statusEl = document.getElementById("status");
+      const badgeEl = document.getElementById("badge");
+      const topLabelEl = document.getElementById("topLabel");
+      const topConfEl = document.getElementById("topConf");
+      const rowsEl = document.getElementById("rows");
+
+      let selectedFile = null;
+
+      function setStatus(text, kind) {
+        statusEl.textContent = text || "";
+        if (kind === "ok") badgeEl.textContent = "Done";
+        else if (kind === "loading") badgeEl.textContent = "Predicting…";
+        else if (kind === "error") badgeEl.textContent = "Error";
+        else badgeEl.textContent = "Ready";
+      }
+
+      function pct(x) {
+        return `${(x * 100).toFixed(2)}%`;
+      }
+
+      function clearTable(message) {
+        rowsEl.innerHTML = `<tr><td colspan="3" style="color: rgba(255,255,255,0.62)">${message}</td></tr>`;
+      }
+
+      function renderTop5(items) {
+        if (!items || !items.length) {
+          clearTable("No predictions returned.");
+          return;
+        }
+
+        const [topLabel, topProb] = items[0];
+        topLabelEl.textContent = topLabel;
+        topConfEl.textContent = pct(topProb);
+
+        rowsEl.innerHTML = items
+          .slice(0, 5)
+          .map(([label, prob], idx) => {
+            return `<tr><td>${idx + 1}</td><td>${label}</td><td>${pct(prob)}</td></tr>`;
+          })
+          .join("");
+      }
+
+      fileEl.addEventListener("change", async (e) => {
+        const f = e.target.files && e.target.files[0];
+        selectedFile = null;
+        btnEl.disabled = true;
+        topLabelEl.textContent = "—";
+        topConfEl.textContent = "—";
+        clearTable("Upload an image to see predictions.");
+
+        if (!f) return;
+
+        selectedFile = f;
+        imgEl.src = URL.createObjectURL(f);
+        imgEl.style.display = "block";
+        previewHintEl.style.display = "none";
+        btnEl.disabled = false;
+        setStatus("Image loaded. Click Predict.", "idle");
+      });
+
+      btnEl.addEventListener("click", async () => {
+        if (!selectedFile) return;
+
+        btnEl.disabled = true;
+        setStatus("Sending request to model API…", "loading");
+
+        try {
+          const client = await Client.connect(SPACE);
+          const result = await client.predict("/predict", { image: selectedFile });
+
+          const payload = result?.data?.[0];
+          const confidences = payload?.confidences;
+          if (!confidences || !Array.isArray(confidences) || confidences.length === 0) {
+            clearTable("Could not parse predictions from Space response.");
+            setStatus("Response received, but the prediction format was unexpected.", "error");
+            return;
+          }
+
+          const top5 = confidences
+            .slice(0, 5)
+            .map((c) => [String(c.label), Number(c.confidence)]);
+
+          renderTop5(top5);
+          setStatus("Prediction complete.", "ok");
+        } catch (err) {
+          clearTable("Prediction failed. Check the endpoint and try again.");
+          setStatus(err && err.message ? err.message : "Unknown error", "error");
+        } finally {
+          btnEl.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
+
