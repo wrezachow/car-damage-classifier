@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Car Damage Classifier – Web Demo</title>
+    <title>Car Damage Classifier - Interactive Demo</title>
     <style>
       :root {
         --bg: #0b1220;
@@ -51,7 +51,7 @@
       }
 
       .container {
-        max-width: 980px;
+        max-width: 1200px;
         margin: 0 auto;
       }
 
@@ -65,13 +65,26 @@
 
       .title h1 {
         margin: 0;
-        font-size: 28px;
+        font-size: 32px;
         letter-spacing: -0.02em;
       }
       .title p {
         margin: 8px 0 0;
         color: var(--muted);
         line-height: 1.5;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, var(--brand), #a855f7);
+        color: white;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
       }
 
       .pill {
@@ -115,7 +128,7 @@
       }
 
       .card .body {
-        padding: 16px;
+        padding: 20px;
       }
 
       .row {
@@ -125,13 +138,36 @@
         align-items: center;
       }
 
-      input[type="file"] {
+      .drag-drop-zone {
         width: 100%;
-        padding: 12px;
-        border: 1px dashed var(--border);
+        padding: 32px;
+        border: 2px dashed var(--border);
         background: rgba(0, 0, 0, 0.25);
         border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 16px;
+      }
+
+      .drag-drop-zone:hover {
+        border-color: var(--brand);
+        background: rgba(124, 58, 237, 0.1);
+      }
+
+      .drag-drop-zone.drag-over {
+        border-color: var(--brand);
+        background: rgba(124, 58, 237, 0.15);
+        transform: scale(1.02);
+      }
+
+      .drag-drop-zone p {
+        margin: 8px 0;
         color: var(--muted);
+      }
+
+      input[type="file"] {
+        display: none;
       }
 
       button {
@@ -139,15 +175,20 @@
         border: 1px solid rgba(124, 58, 237, 0.55);
         background: linear-gradient(180deg, rgba(124, 58, 237, 0.95), rgba(124, 58, 237, 0.78));
         color: white;
-        padding: 10px 14px;
+        padding: 12px 20px;
         border-radius: 12px;
         font-weight: 600;
         cursor: pointer;
         transition: transform 0.06s ease, filter 0.2s ease;
+        width: 100%;
+        font-size: 15px;
       }
       button:disabled {
         cursor: not-allowed;
         filter: grayscale(0.35) brightness(0.8);
+      }
+      button:not(:disabled):hover {
+        transform: translateY(-1px);
       }
       button:active {
         transform: translateY(1px);
@@ -172,65 +213,105 @@
         color: var(--muted);
         font-size: 13px;
         line-height: 1.45;
+        padding: 12px;
       }
 
       .result {
         display: grid;
-        gap: 12px;
+        gap: 16px;
       }
 
-      .badge {
+      .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 10px;
+        padding: 8px 12px;
         border-radius: 12px;
         border: 1px solid var(--border);
         background: var(--panel);
         width: fit-content;
         color: var(--muted);
         font-size: 13px;
+        font-weight: 600;
+      }
+
+      .status-badge.complete {
+        background: rgba(34, 197, 94, 0.1);
+        border-color: var(--good);
+        color: var(--good);
+      }
+
+      .status-badge.processing {
+        background: rgba(124, 58, 237, 0.1);
+        border-color: var(--brand);
+        color: var(--brand);
+      }
+
+      .status-badge.error {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--bad);
+        color: var(--bad);
       }
 
       .kv {
         display: grid;
-        grid-template-columns: 160px 1fr;
+        grid-template-columns: 140px 1fr;
         gap: 8px 12px;
-        padding: 12px;
+        padding: 16px;
         border: 1px solid var(--border);
         background: var(--panel);
         border-radius: 14px;
       }
       .k {
         color: var(--muted);
+        font-size: 14px;
       }
       .v {
         color: var(--text);
         font-weight: 600;
+        font-size: 18px;
       }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        overflow: hidden;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: var(--panel);
+      .prediction-list {
+        display: grid;
+        gap: 12px;
       }
-      th,
-      td {
-        padding: 10px 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        text-align: left;
+
+      .prediction-item {
+        display: grid;
+        gap: 6px;
+      }
+
+      .prediction-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         font-size: 14px;
       }
-      th {
-        color: rgba(255, 255, 255, 0.8);
-        background: rgba(255, 255, 255, 0.06);
+
+      .prediction-label {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .prediction-value {
+        color: var(--brand);
         font-weight: 700;
       }
-      tr:last-child td {
-        border-bottom: 0;
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--brand), #a855f7);
+        transition: width 0.4s ease;
+        border-radius: 4px;
       }
 
       .status {
@@ -240,99 +321,367 @@
         min-height: 18px;
       }
 
-      .foot {
-        margin-top: 14px;
+      .section {
+        margin-top: 64px;
+      }
+
+      .section h2 {
+        font-size: 28px;
+        margin-bottom: 24px;
+        text-align: center;
+        font-weight: 700;
+      }
+
+      .section h3 {
+        font-size: 20px;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+
+      .classes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+      }
+
+      .class-card {
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel);
+        text-align: center;
+        transition: all 0.2s;
+      }
+
+      .class-card:hover {
+        background: var(--panel-2);
+        transform: translateY(-2px);
+      }
+
+      .class-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 12px;
+        background: linear-gradient(135deg, var(--brand), #a855f7);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+      }
+
+      .class-name {
+        font-size: 13px;
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+      }
+
+      .step-card {
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--panel);
+      }
+
+      .step-card h4 {
+        margin: 0 0 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--brand);
+      }
+
+      .step-card p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      ul {
+        margin: 12px 0;
+        padding-left: 24px;
+      }
+
+      ul li {
+        margin: 8px 0;
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      footer {
+        margin-top: 80px;
+        padding: 32px 0;
+        text-align: center;
         color: var(--muted);
         font-size: 13px;
-        line-height: 1.5;
+        border-top: 1px solid var(--border);
+      }
+
+      footer p {
+        margin: 6px 0;
       }
 
       code {
         padding: 2px 6px;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 1px solid rgba(255, 255, 255, 0.12);
         background: rgba(0, 0, 0, 0.22);
         color: rgba(255, 255, 255, 0.86);
+        font-family: monospace;
+        font-size: 13px;
+      }
+
+      @media (max-width: 640px) {
+        .classes-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
     </style>
   </head>
 
   <body>
     <div class="container">
+      <!-- Header Badge -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span class="badge">AI PROJECT</span>
+      </div>
+
+      <!-- Header -->
       <div class="header">
         <div class="title">
-          <h1>Car Damage Classifier – Web Demo</h1>
+          <h1>Car Damage Classifier - Interactive Demo</h1>
           <p>
-            Upload a car image and get the <strong>top 5 predictions</strong> and confidence scores.
-            This demo calls the HuggingFace Space API endpoint directly.
+            Upload a vehicle image to get instant AI-powered damage classification with confidence scores
           </p>
         </div>
         <div class="pill">
-          Endpoint:
-          <span><code id="endpointText"></code></span>
+          Endpoint: <code id="endpointText"></code>
         </div>
       </div>
 
+      <!-- Main Demo Grid -->
       <div class="grid">
+        <!-- Left Panel: Upload -->
         <div class="card">
           <div class="body">
-            <div class="row" style="margin-bottom: 10px">
-              <input id="file" type="file" accept="image/*" />
-              <button id="predictBtn" disabled>Predict</button>
+            <div class="drag-drop-zone" id="dropZone">
+              <p style="margin-top: 0; font-weight: 600;">Drag & drop image here</p>
+              <p style="margin-bottom: 12px;">or click to browse</p>
+              <button type="button" onclick="document.getElementById('file').click()" style="width: auto; padding: 8px 16px;">
+                Choose File
+              </button>
             </div>
+            <input id="file" type="file" accept="image/*" />
 
             <div class="preview" id="preview">
               <div class="hint" id="previewHint">
-                Choose a clear image with good lighting and minimal glare. Closer crops usually improve accuracy.
+                Best results: clear lighting, close-up of damage, minimal glare
               </div>
               <img id="img" alt="" style="display: none" />
             </div>
 
+            <button id="predictBtn" disabled style="margin-top: 16px;">
+              Run Prediction
+            </button>
+
             <div class="status" id="status"></div>
-            <div class="foot">
-              Tip: if your Space uses a different endpoint, update the constant in this file.
+            <div class="hint">
+              PNG, JPG, JPEG up to 10MB
             </div>
           </div>
         </div>
 
+        <!-- Right Panel: Results -->
         <div class="card">
           <div class="body">
             <div class="result">
-              <div class="badge" id="badge">Ready</div>
+              <div class="status-badge" id="badge">Ready</div>
 
+              <!-- Top Prediction -->
               <div class="kv">
-                <div class="k">Top prediction</div>
+                <div class="k">Top Prediction</div>
                 <div class="v" id="topLabel">—</div>
                 <div class="k">Confidence</div>
                 <div class="v" id="topConf">—</div>
               </div>
 
+              <!-- Top-5 Predictions -->
               <div>
-                <table>
-                  <thead>
-                    <tr>
-                      <th style="width: 60px">Rank</th>
-                      <th>Class</th>
-                      <th style="width: 140px">Confidence</th>
-                    </tr>
-                  </thead>
-                  <tbody id="rows">
-                    <tr>
-                      <td colspan="3" style="color: rgba(255, 255, 255, 0.62)">
-                        Upload an image to see predictions.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <h3 style="margin-bottom: 12px;">Top-5 Predictions</h3>
+                <div class="prediction-list" id="top5Container">
+                  <div class="hint">Upload an image to see predictions</div>
+                </div>
               </div>
 
               <div class="hint">
-                Note: This page connects to the HuggingFace Space using <code>@gradio/client</code> and calls <code>/predict</code>.
+                Uses <code>@gradio/client</code> to call <code>/predict</code> endpoint
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Supported Classes Section -->
+      <section class="section">
+        <h2>Supported Classes (12)</h2>
+        <div class="classes-grid">
+          <div class="class-card">
+            <div class="class-icon">D</div>
+            <div class="class-name">Car Dent</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">S</div>
+            <div class="class-name">Car Scratch</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">W</div>
+            <div class="class-name">Cracked Windshield</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">B</div>
+            <div class="class-name">Broken Bumper</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">T</div>
+            <div class="class-name">Flat Tire</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">Fl</div>
+            <div class="class-name">Flood Damage</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">Fi</div>
+            <div class="class-name">Fire Damage</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">H</div>
+            <div class="class-name">Hail Damage</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">M</div>
+            <div class="class-name">Broken Side Mirror</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">R</div>
+            <div class="class-name">Rust/Corrosion</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">V</div>
+            <div class="class-name">Vandalism/Keyed</div>
+          </div>
+          <div class="class-card">
+            <div class="class-icon">✓</div>
+            <div class="class-name">No Damage</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- How It Works Section -->
+      <section class="section">
+        <h2>How It Works</h2>
+        <div class="steps-grid">
+          <div class="step-card">
+            <h4>1. Upload Image</h4>
+            <p>Provide a clear photo of the vehicle damage</p>
+          </div>
+          <div class="step-card">
+            <h4>2. Preprocess</h4>
+            <p>Image is resized and normalized for the model</p>
+          </div>
+          <div class="step-card">
+            <h4>3. Run Model</h4>
+            <p>ResNet50 classifies the damage type</p>
+          </div>
+          <div class="step-card">
+            <h4>4. Return Predictions</h4>
+            <p>Top-5 classes with confidence scores</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Use Cases Section -->
+      <section class="section">
+        <h2>Use Cases</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="body">
+              <h3>Insurance Claims</h3>
+              <p>Automate first-pass damage assessment for insurance claim triage and reduce manual review time.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="body">
+              <h3>Fleet Inspection</h3>
+              <p>Standardize vehicle condition reporting for fleet management and regular inspection workflows.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="body">
+              <h3>Repair Intake</h3>
+              <p>Speed up shop intake processing with instant damage categorization and severity estimation.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="body">
+              <h3>Resale Assessment</h3>
+              <p>Document vehicle condition for used car listings, marketplaces, and resale valuation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tips & Limitations Section -->
+      <section class="section">
+        <h2>Tips & Limitations</h2>
+        <div class="grid">
+          <div class="card">
+            <div class="body">
+              <h3>Tips for Best Results</h3>
+              <ul>
+                <li>Use good lighting and avoid glare or reflections</li>
+                <li>Crop close to the damaged area when possible</li>
+                <li>Capture straight-on angles for better clarity</li>
+                <li>Ensure the image is clear and in focus</li>
+                <li>Avoid motion blur or low-resolution images</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="body">
+              <h3>Limitations</h3>
+              <ul>
+                <li>Scratches and dents can be visually similar</li>
+                <li>Low confidence (<60%) requires manual review</li>
+                <li>Multiple damage types in one image may confuse the model</li>
+                <li>Subtle damage may be missed in low-contrast images</li>
+                <li>Model trained on specific dataset characteristics</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer>
+        <p><strong>Endpoint:</strong> <code>wrezachow/car-damage-classifier</code></p>
+        <p><strong>Route:</strong> <code>/predict</code></p>
+        <p style="margin-top: 16px;">Built with FastAI, PyTorch & Gradio</p>
+        <p><a href="index.html">← Back to Project Home</a></p>
+      </footer>
     </div>
 
     <script type="module">
@@ -342,6 +691,7 @@
       document.getElementById("endpointText").textContent = SPACE;
 
       const fileEl = document.getElementById("file");
+      const dropZone = document.getElementById("dropZone");
       const imgEl = document.getElementById("img");
       const previewHintEl = document.getElementById("previewHint");
       const btnEl = document.getElementById("predictBtn");
@@ -349,29 +699,68 @@
       const badgeEl = document.getElementById("badge");
       const topLabelEl = document.getElementById("topLabel");
       const topConfEl = document.getElementById("topConf");
-      const rowsEl = document.getElementById("rows");
+      const top5Container = document.getElementById("top5Container");
 
       let selectedFile = null;
 
+      // Drag & Drop Handlers
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("drag-over");
+      });
+
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("drag-over");
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("drag-over");
+        const files = e.dataTransfer.files;
+        if (files && files[0]) {
+          fileEl.files = files;
+          handleFile(files[0]);
+        }
+      });
+
+      dropZone.addEventListener("click", () => {
+        fileEl.click();
+      });
+
       function setStatus(text, kind) {
         statusEl.textContent = text || "";
-        if (kind === "ok") badgeEl.textContent = "Done";
-        else if (kind === "loading") badgeEl.textContent = "Predicting…";
-        else if (kind === "error") badgeEl.textContent = "Error";
-        else badgeEl.textContent = "Ready";
+        badgeEl.className = "status-badge";
+        if (kind === "ok") {
+          badgeEl.textContent = "Prediction Complete";
+          badgeEl.classList.add("complete");
+        } else if (kind === "loading") {
+          badgeEl.textContent = "Processing...";
+          badgeEl.classList.add("processing");
+        } else if (kind === "error") {
+          badgeEl.textContent = "Error";
+          badgeEl.classList.add("error");
+        } else {
+          badgeEl.textContent = "Ready";
+        }
       }
 
       function pct(x) {
-        return `${(x * 100).toFixed(2)}%`;
+        return `${(x * 100).toFixed(1)}%`;
       }
 
-      function clearTable(message) {
-        rowsEl.innerHTML = `<tr><td colspan="3" style="color: rgba(255,255,255,0.62)">${message}</td></tr>`;
+      function handleFile(f) {
+        if (!f) return;
+        selectedFile = f;
+        imgEl.src = URL.createObjectURL(f);
+        imgEl.style.display = "block";
+        previewHintEl.style.display = "none";
+        btnEl.disabled = false;
+        setStatus("Image loaded. Click Run Prediction.", "idle");
       }
 
-      function renderTop5(items) {
+      function renderTop5WithBars(items) {
         if (!items || !items.length) {
-          clearTable("No predictions returned.");
+          top5Container.innerHTML = '<div class="hint">No predictions returned</div>';
           return;
         }
 
@@ -379,37 +768,44 @@
         topLabelEl.textContent = topLabel;
         topConfEl.textContent = pct(topProb);
 
-        rowsEl.innerHTML = items
+        // Color code confidence
+        if (topProb > 0.8) {
+          topConfEl.style.color = "var(--good)";
+        } else if (topProb > 0.6) {
+          topConfEl.style.color = "var(--warn)";
+        } else {
+          topConfEl.style.color = "var(--bad)";
+        }
+
+        top5Container.innerHTML = items
           .slice(0, 5)
-          .map(([label, prob], idx) => {
-            return `<tr><td>${idx + 1}</td><td>${label}</td><td>${pct(prob)}</td></tr>`;
+          .map(([label, prob]) => {
+            return `
+              <div class="prediction-item">
+                <div class="prediction-header">
+                  <span class="prediction-label">${label}</span>
+                  <span class="prediction-value">${pct(prob)}</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${prob * 100}%"></div>
+                </div>
+              </div>
+            `;
           })
           .join("");
       }
 
       fileEl.addEventListener("change", async (e) => {
         const f = e.target.files && e.target.files[0];
-        selectedFile = null;
-        btnEl.disabled = true;
-        topLabelEl.textContent = "—";
-        topConfEl.textContent = "—";
-        clearTable("Upload an image to see predictions.");
-
         if (!f) return;
-
-        selectedFile = f;
-        imgEl.src = URL.createObjectURL(f);
-        imgEl.style.display = "block";
-        previewHintEl.style.display = "none";
-        btnEl.disabled = false;
-        setStatus("Image loaded. Click Predict.", "idle");
+        handleFile(f);
       });
 
       btnEl.addEventListener("click", async () => {
         if (!selectedFile) return;
 
         btnEl.disabled = true;
-        setStatus("Sending request to model API…", "loading");
+        setStatus("Sending request to model API...", "loading");
 
         try {
           const client = await Client.connect(SPACE);
@@ -417,21 +813,21 @@
 
           const payload = result?.data?.[0];
           const confidences = payload?.confidences;
+
           if (!confidences || !Array.isArray(confidences) || confidences.length === 0) {
-            clearTable("Could not parse predictions from Space response.");
-            setStatus("Response received, but the prediction format was unexpected.", "error");
-            return;
+            throw new Error("Invalid response format from API");
           }
 
           const top5 = confidences
             .slice(0, 5)
             .map((c) => [String(c.label), Number(c.confidence)]);
 
-          renderTop5(top5);
+          renderTop5WithBars(top5);
           setStatus("Prediction complete.", "ok");
         } catch (err) {
-          clearTable("Prediction failed. Check the endpoint and try again.");
+          top5Container.innerHTML = '<div class="hint" style="color: var(--bad);">Prediction failed. Check endpoint and try again.</div>';
           setStatus(err && err.message ? err.message : "Unknown error", "error");
+          console.error(err);
         } finally {
           btnEl.disabled = false;
         }
@@ -439,4 +835,3 @@
     </script>
   </body>
 </html>
-
