@@ -251,7 +251,20 @@ This allows:
 
 ## Web Demo
 
-The GitHub Pages demo connects directly to the HuggingFace Space API using `@gradio/client` and calls the `/predict_damage` route with the `image_input` parameter.
+The GitHub Pages demo connects directly to the HuggingFace Space API using `@gradio/client` and calls the `/predict_damage` route with the `image_input` parameter. The static GitHub Pages page imports the client from a browser CDN, so no npm build step is required for the hosted demo.
+
+### API contract
+
+```js
+import { Client } from "@gradio/client";
+
+const client = await Client.connect("wrezachow/car-damage-classifier");
+const result = await client.predict("/predict_damage", {
+  image_input: imageBlobOrFile,
+});
+
+console.log(result.data);
+```
 
 ### Demo flow
 

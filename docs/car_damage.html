@@ -702,6 +702,30 @@
       const top5Container = document.getElementById("top5Container");
 
       let selectedFile = null;
+      let clientPromise = null;
+      const CONNECT_TIMEOUT_MS = 20000;
+      const PREDICT_TIMEOUT_MS = 45000;
+
+      function withTimeout(promise, timeoutMs, message) {
+        let timeoutId;
+        const timeout = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+        });
+
+        return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+      }
+
+      function getClient() {
+        if (!clientPromise) {
+          clientPromise = Client.connect(SPACE);
+        }
+
+        return clientPromise;
+      }
+
+      getClient().catch(() => {
+        clientPromise = null;
+      });
 
       // Drag & Drop Handlers
       dropZone.addEventListener("dragover", (e) => {
@@ -746,6 +770,21 @@
 
       function pct(x) {
         return `${(x * 100).toFixed(1)}%`;
+      }
+
+      function normalizeConfidencePayload(payload) {
+        if (payload?.confidences && Array.isArray(payload.confidences)) {
+          return payload.confidences;
+        }
+
+        if (payload && typeof payload === "object") {
+          return Object.entries(payload)
+            .filter(([, confidence]) => typeof confidence === "number")
+            .map(([label, confidence]) => ({ label, confidence }))
+            .sort((a, b) => b.confidence - a.confidence);
+        }
+
+        return [];
       }
 
       function handleFile(f) {
@@ -805,19 +844,29 @@
         if (!selectedFile) return;
 
         btnEl.disabled = true;
-        setStatus("Sending request to model API...", "loading");
+        setStatus("Connecting to HuggingFace Space...", "loading");
+        top5Container.innerHTML = '<div class="hint">Connecting to the model backend. If the Space is sleeping, the first request can be slower.</div>';
 
         try {
-          const client = await Client.connect(SPACE);
-          const result = await client.predict("/predict_damage", {
-            image_input: selectedFile,
-          });
+          const client = await withTimeout(
+            getClient(),
+            CONNECT_TIMEOUT_MS,
+            "Connection timed out. The HuggingFace Space may be asleep or unreachable."
+          );
+
+          setStatus("Running prediction...", "loading");
+          top5Container.innerHTML = '<div class="hint">Image sent. Waiting for model prediction...</div>';
+
+          const result = await withTimeout(
+            client.predict("/predict_damage", {
+              image_input: selectedFile,
+            }),
+            PREDICT_TIMEOUT_MS,
+            "Prediction timed out. Try a smaller image or open the HuggingFace Space once to wake it up."
+          );
 
           const payload = result?.data?.[0];
-          const confidences = payload?.confidences || Object.entries(payload || {})
-            .filter(([, confidence]) => typeof confidence === "number")
-            .map(([label, confidence]) => ({ label, confidence }))
-            .sort((a, b) => b.confidence - a.confidence);
+          const confidences = normalizeConfidencePayload(payload);
 
           if (!confidences || !Array.isArray(confidences) || confidences.length === 0) {
             throw new Error("Invalid response format from API");
@@ -830,7 +879,10 @@
           renderTop5WithBars(top5);
           setStatus("Prediction complete.", "ok");
         } catch (err) {
-          top5Container.innerHTML = '<div class="hint" style="color: var(--bad);">Prediction failed. Check endpoint and try again.</div>';
+          if (err && /timed out|unreachable/i.test(err.message || "")) {
+            clientPromise = null;
+          }
+          top5Container.innerHTML = '<div class="hint" style="color: var(--bad);">Prediction failed. Open the HuggingFace Space to verify it is awake, then retry.</div>';
           setStatus(err && err.message ? err.message : "Unknown error", "error");
           console.error(err);
         } finally {
