@@ -1,6 +1,6 @@
 # Car Damage Classifier
 
-End-to-end **vehicle damage classification** across **12 categories** using **FastAI + PyTorch**, deployed on **HuggingFace Spaces (Gradio)** with a lightweight **GitHub Pages** companion site for project presentation and demo access.
+End-to-end **AI vehicle damage inspection** across **12 categories** using **FastAI + PyTorch**, deployed on **HuggingFace Spaces (Gradio)** with a polished **GitHub Pages** research landing page and static demo frontend.
 
 > **Best model:** ResNet50
 > **Top-1 accuracy:** **78.03%**
@@ -168,15 +168,15 @@ These classes are harder because:
 
 ### Model Comparison Chart
 
-![Model comparison](docs/assets/charts/model-comparison.png)
+![Model comparison](docs/assets/charts/model-comparison-themed.png)
 
 ### Per-Class Accuracy Chart
 
-![Per-class accuracy](docs/assets/charts/per-class-accuracy.png)
+![Per-class accuracy](docs/assets/charts/per-class-accuracy-themed.png)
 
 ### Confusion Matrix
 
-![Confusion matrix](docs/assets/confusion-matrices/resnet50.png)
+![Confusion matrix](docs/assets/confusion-matrices/resnet50-themed.png)
 
 ---
 
@@ -282,14 +282,14 @@ car-damage-classifier/
 │  ├─ car_damage.html
 │  └─ assets/
 │     ├─ charts/
-│     │  ├─ model-comparison.png
-│     │  └─ per-class-accuracy.png
+│     │  ├─ model-comparison-themed.png
+│     │  └─ per-class-accuracy-themed.png
 │     ├─ confusion-matrices/
-│     │  ├─ resnet50.png
+│     │  ├─ resnet50-themed.png
 │     │  ├─ resnet34.png
 │     │  └─ efficientnet-b0.png
 │     ├─ samples/
-│     └─ icons/
+│     └─ sections/
 ├─ scripts/
 │  └─ generate_charts.py
 └─ README.md
