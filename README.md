@@ -251,7 +251,7 @@ This allows:
 
 ## Web Demo
 
-The GitHub Pages demo connects directly to the HuggingFace Space API using `@gradio/client` and calls the `/predict` route.
+The GitHub Pages demo connects directly to the HuggingFace Space API using `@gradio/client` and calls the `/predict_damage` route with the `image_input` parameter.
 
 ### Demo flow
 

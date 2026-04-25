@@ -528,7 +528,7 @@
               </div>
 
               <div class="hint">
-                Uses <code>@gradio/client</code> to call <code>/predict</code> endpoint
+                Uses <code>@gradio/client</code> to call <code>/predict_damage</code> endpoint
               </div>
             </div>
           </div>
@@ -678,7 +678,7 @@
       <!-- Footer -->
       <footer>
         <p><strong>Endpoint:</strong> <code>wrezachow/car-damage-classifier</code></p>
-        <p><strong>Route:</strong> <code>/predict</code></p>
+        <p><strong>Route:</strong> <code>/predict_damage</code></p>
         <p style="margin-top: 16px;">Built with FastAI, PyTorch & Gradio</p>
         <p><a href="index.html">← Back to Project Home</a></p>
       </footer>
@@ -809,10 +809,15 @@
 
         try {
           const client = await Client.connect(SPACE);
-          const result = await client.predict("/predict", { image: selectedFile });
+          const result = await client.predict("/predict_damage", {
+            image_input: selectedFile,
+          });
 
           const payload = result?.data?.[0];
-          const confidences = payload?.confidences;
+          const confidences = payload?.confidences || Object.entries(payload || {})
+            .filter(([, confidence]) => typeof confidence === "number")
+            .map(([label, confidence]) => ({ label, confidence }))
+            .sort((a, b) => b.confidence - a.confidence);
 
           if (!confidences || !Array.isArray(confidences) || confidences.length === 0) {
             throw new Error("Invalid response format from API");
